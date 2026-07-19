@@ -3,445 +3,679 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Administration - Gestion des Actualités | SARIS SARL</title>
+  <title>Administration - SARIS SARL</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    .admin-layout { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-    .admin-sidebar {
-      background: var(--primary); color: var(--white); padding: 30px 0;
-      position: sticky; top: 0; height: 100vh; overflow-y: auto;
-    }
-    .admin-sidebar__header { padding: 0 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .admin-sidebar__header img { height: 45px; margin-bottom: 8px; }
-    .admin-sidebar__header h3 { font-size: 1rem; color: var(--white); margin-bottom: 4px; }
-    .admin-sidebar__header span { font-size: 0.8rem; color: rgba(255,255,255,0.6); }
-    .admin-nav { padding: 20px 0; }
-    .admin-nav a {
-      display: flex; align-items: center; gap: 12px; padding: 12px 20px;
-      color: rgba(255,255,255,0.7); font-size: 0.9rem; transition: var(--transition);
-    }
-    .admin-nav a:hover, .admin-nav a.active { color: var(--white); background: rgba(255,255,255,0.08); }
-    .admin-nav a i { width: 20px; text-align: center; }
-    .admin-main { background: var(--tertiary); padding: 30px; overflow-y: auto; }
-    .admin-topbar {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--gray-light);
-    }
-    .admin-topbar h1 { font-size: 1.6rem; }
-    .admin-topbar__actions { display: flex; gap: 12px; align-items: center; }
-    .admin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-    .admin-stat {
-      background: var(--white); border-radius: var(--radius-lg); padding: 24px;
-      box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px;
-    }
-    .admin-stat__icon {
-      width: 56px; height: 56px; border-radius: 12px; display: flex;
-      align-items: center; justify-content: center; font-size: 1.4rem;
-    }
-    .admin-stat__icon--blue { background: rgba(10,30,63,0.1); color: var(--primary); }
-    .admin-stat__icon--orange { background: rgba(244,123,32,0.1); color: var(--secondary); }
-    .admin-stat__icon--green { background: rgba(39,174,96,0.1); color: #27ae60; }
-    .admin-stat h3 { font-size: 1.8rem; color: var(--primary); }
-    .admin-stat p { font-size: 0.85rem; color: var(--gray); }
-    .admin-card { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow); overflow: hidden; }
-    .admin-card__header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 20px 24px; border-bottom: 1px solid var(--gray-light);
-    }
-    .admin-card__header h2 { font-size: 1.15rem; }
-    .admin-card__body { padding: 24px; }
-    .admin-table { width: 100%; border-collapse: collapse; }
-    .admin-table th {
-      text-align: left; padding: 12px 16px; background: var(--tertiary);
-      font-size: 0.82rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.5px; color: var(--gray); border-bottom: 2px solid var(--gray-light);
-    }
-    .admin-table td { padding: 14px 16px; border-bottom: 1px solid var(--gray-light); font-size: 0.9rem; }
-    .admin-table tr:hover { background: rgba(244,123,32,0.03); }
-    .admin-table .actions { display: flex; gap: 8px; }
-    .admin-table .btn-icon {
-      width: 34px; height: 34px; border-radius: 8px; border: none;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: var(--transition); font-size: 0.85rem;
-    }
-    .btn-icon--edit { background: rgba(10,30,63,0.08); color: var(--primary); }
-    .btn-icon--edit:hover { background: var(--primary); color: var(--white); }
-    .btn-icon--delete { background: rgba(231,76,60,0.08); color: #e74c3c; }
-    .btn-icon--delete:hover { background: #e74c3c; color: var(--white); }
-    .badge { padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-    .badge--published { background: rgba(39,174,96,0.1); color: #27ae60; }
-    .badge--draft { background: rgba(244,123,32,0.1); color: var(--secondary); }
-
-    /* Modal */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-      z-index: 2000; align-items: center; justify-content: center;
-    }
-    .modal-overlay.active { display: flex; }
-    .modal {
-      background: var(--white); border-radius: var(--radius-lg); width: 90%; max-width: 700px;
-      max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    .modal__header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 20px 24px; border-bottom: 1px solid var(--gray-light);
-    }
-    .modal__header h2 { font-size: 1.2rem; }
-    .modal__close {
-      width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--tertiary);
-      cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center;
-      transition: var(--transition);
-    }
-    .modal__close:hover { background: #e74c3c; color: var(--white); }
-    .modal__body { padding: 24px; }
-    .modal__footer { padding: 16px 24px; border-top: 1px solid var(--gray-light); display: flex; justify-content: flex-end; gap: 12px; }
-
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-
-    @media (max-width: 1024px) {
-      .admin-layout { grid-template-columns: 1fr; }
-      .admin-sidebar { display: none; }
-      .admin-stats { grid-template-columns: 1fr; }
-      .form-row { grid-template-columns: 1fr; }
-    }
+    .login-page{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--tertiary);}
+    .login-card{background:var(--white);border-radius:var(--radius-lg);padding:48px 40px;width:100%;max-width:420px;box-shadow:var(--shadow-lg);text-align:center;}
+    .login-card img{height:60px;margin-bottom:24px;}
+    .login-card h2{font-size:1.5rem;margin-bottom:8px;}
+    .login-card p{color:var(--gray);font-size:0.9rem;margin-bottom:30px;}
+    .login-error{background:rgba(231,76,60,0.1);color:#e74c3c;padding:10px;border-radius:var(--radius);font-size:0.85rem;margin-bottom:16px;display:none;}
+    .admin-layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+    .admin-sidebar{background:var(--primary);color:var(--white);position:sticky;top:0;height:100vh;overflow-y:auto;}
+    .admin-sidebar__header{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,0.1);}
+    .admin-sidebar__header img{height:45px;margin-bottom:8px;}
+    .admin-sidebar__header h3{font-size:0.95rem;color:var(--white);margin-bottom:2px;}
+    .admin-sidebar__header span{font-size:0.78rem;color:rgba(255,255,255,0.5);}
+    .admin-nav{padding:16px 0;}
+    .admin-nav a{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,0.65);font-size:0.88rem;transition:var(--transition);cursor:pointer;}
+    .admin-nav a:hover,.admin-nav a.active{color:var(--white);background:rgba(255,255,255,0.08);}
+    .admin-nav a i{width:20px;text-align:center;}
+    .admin-nav a .badge-count{margin-left:auto;background:var(--secondary);color:var(--white);font-size:0.7rem;padding:2px 8px;border-radius:10px;font-weight:700;}
+    .admin-main{background:var(--tertiary);padding:30px;overflow-y:auto;}
+    .admin-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;padding-bottom:20px;border-bottom:1px solid var(--gray-light);}
+    .admin-topbar h1{font-size:1.5rem;}
+    .admin-topbar__actions{display:flex;gap:12px;align-items:center;}
+    .admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:30px;}
+    .admin-stat{background:var(--white);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:14px;}
+    .admin-stat__icon{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .admin-stat__icon--blue{background:rgba(10,30,63,0.1);color:var(--primary);}
+    .admin-stat__icon--orange{background:rgba(244,123,32,0.1);color:var(--secondary);}
+    .admin-stat__icon--green{background:rgba(39,174,96,0.1);color:#27ae60;}
+    .admin-stat__icon--red{background:rgba(231,76,60,0.1);color:#e74c3c;}
+    .admin-stat h3{font-size:1.6rem;color:var(--primary);}
+    .admin-stat p{font-size:0.82rem;color:var(--gray);}
+    .admin-card{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px;}
+    .admin-card__header{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid var(--gray-light);}
+    .admin-card__header h2{font-size:1.05rem;}
+    .admin-card__body{padding:24px;}
+    .admin-table{width:100%;border-collapse:collapse;}
+    .admin-table th{text-align:left;padding:12px 16px;background:var(--tertiary);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray);border-bottom:2px solid var(--gray-light);}
+    .admin-table td{padding:12px 16px;border-bottom:1px solid var(--gray-light);font-size:0.88rem;}
+    .admin-table tr:hover{background:rgba(244,123,32,0.03);}
+    .admin-table .actions{display:flex;gap:6px;}
+    .btn-icon{width:32px;height:32px;border-radius:8px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);font-size:0.8rem;}
+    .btn-icon--edit{background:rgba(10,30,63,0.08);color:var(--primary);}
+    .btn-icon--edit:hover{background:var(--primary);color:var(--white);}
+    .btn-icon--delete{background:rgba(231,76,60,0.08);color:#e74c3c;}
+    .btn-icon--delete:hover{background:#e74c3c;color:var(--white);}
+    .btn-icon--view{background:rgba(39,174,96,0.08);color:#27ae60;}
+    .btn-icon--view:hover{background:#27ae60;color:var(--white);}
+    .btn-icon--reply{background:rgba(244,123,32,0.08);color:var(--secondary);}
+    .btn-icon--reply:hover{background:var(--secondary);color:var(--white);}
+    .badge{padding:4px 12px;border-radius:20px;font-size:0.72rem;font-weight:600;}
+    .badge--published{background:rgba(39,174,96,0.1);color:#27ae60;}
+    .badge--draft{background:rgba(244,123,32,0.1);color:var(--secondary);}
+    .badge--new{background:rgba(52,152,219,0.1);color:#3498db;}
+    .badge--read{background:rgba(39,174,96,0.1);color:#27ae60;}
+    .badge--replied{background:rgba(155,89,182,0.1);color:#9b59b6;}
+    .badge--reviewed{background:rgba(39,174,96,0.1);color:#27ae60;}
+    .badge--accepted{background:rgba(39,174,96,0.1);color:#27ae60;}
+    .badge--rejected{background:rgba(231,76,60,0.1);color:#e74c3c;}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;align-items:center;justify-content:center;}
+    .modal-overlay.active{display:flex;}
+    .modal{background:var(--white);border-radius:var(--radius-lg);width:90%;max-width:700px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+    .modal__header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--gray-light);}
+    .modal__header h2{font-size:1.15rem;}
+    .modal__close{width:36px;height:36px;border-radius:50%;border:none;background:var(--tertiary);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
+    .modal__close:hover{background:#e74c3c;color:var(--white);}
+    .modal__body{padding:24px;}
+    .modal__footer{padding:16px 24px;border-top:1px solid var(--gray-light);display:flex;justify-content:flex-end;gap:12px;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .message-detail{padding:20px;background:var(--tertiary);border-radius:var(--radius);margin-bottom:16px;}
+    .message-detail p{margin-bottom:8px;font-size:0.9rem;}
+    .message-detail strong{color:var(--primary);}
+    .reply-area{margin-top:16px;}
+    .reply-area textarea{width:100%;min-height:100px;padding:12px;border:1px solid var(--gray-light);border-radius:var(--radius);font-family:'Open Sans',sans-serif;font-size:0.9rem;resize:vertical;}
+    .tab-buttons{display:flex;gap:4px;margin-bottom:20px;}
+    .tab-btn{padding:8px 20px;border:1px solid var(--gray-light);border-radius:var(--radius);background:var(--white);cursor:pointer;font-size:0.85rem;font-weight:600;transition:var(--transition);}
+    .tab-btn.active{background:var(--primary);color:var(--white);border-color:var(--primary);}
+    .tab-content{display:none;}
+    .tab-content.active{display:block;}
+    .empty-state{text-align:center;padding:50px 20px;}
+    .empty-state i{font-size:2.5rem;color:var(--gray-light);margin-bottom:12px;display:block;}
+    .empty-state p{color:var(--gray);margin-bottom:16px;}
+    @media(max-width:1024px){.admin-layout{grid-template-columns:1fr;}.admin-sidebar{display:none;}.admin-stats{grid-template-columns:repeat(2,1fr);}.form-row{grid-template-columns:1fr;}}
+    @media(max-width:768px){.admin-stats{grid-template-columns:1fr;}}
   </style>
 </head>
 <body>
 
-  <div class="admin-layout">
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="login-page">
+    <div class="login-card">
+      <img src="../assets/images/logo.png" alt="SARIS SARL">
+      <h2>Panneau d'Administration</h2>
+      <p>Connectez-vous pour gérer le contenu du site</p>
+      <div class="login-error" id="loginError"></div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="admin@sarisarl.com" required>
+        </div>
+        <div class="form-group">
+          <label>Mot de passe</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn--primary" style="width:100%;margin-top:8px;" id="loginBtn">
+          <i class="fas fa-sign-in-alt"></i> Se connecter
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD -->
+  <div id="adminDashboard" class="admin-layout" style="display:none;">
     <!-- Sidebar -->
     <aside class="admin-sidebar">
       <div class="admin-sidebar__header">
         <img src="../assets/images/logo.png" alt="SARIS SARL">
-        <h3>Panneau d'Administration</h3>
-        <span>Gestion du contenu</span>
+        <h3>Administration</h3>
+        <span id="adminName">Admin</span>
       </div>
       <nav class="admin-nav">
-        <a href="#" class="active"><i class="fas fa-newspaper"></i> Actualités</a>
-        <a href="careers.html"><i class="fas fa-briefcase"></i> Carrières</a>
-        <a href="../index.html"><i class="fas fa-home"></i> Retour au site</a>
+        <a class="active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Tableau de bord</a>
+        <a data-tab="articles"><i class="fas fa-newspaper"></i> Actualités <span class="badge-count" id="countArticles">0</span></a>
+        <a data-tab="offres"><i class="fas fa-briefcase"></i> Offres d'emploi <span class="badge-count" id="countOffres">0</span></a>
+        <a data-tab="candidatures"><i class="fas fa-file-alt"></i> Candidatures <span class="badge-count" id="countCandidatures">0</span></a>
+        <a data-tab="messages"><i class="fas fa-envelope"></i> Messages <span class="badge-count" id="countMessages">0</span></a>
+        <a href="../index.html"><i class="fas fa-globe"></i> Voir le site</a>
+        <a id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
       </nav>
     </aside>
 
     <!-- Main Content -->
     <main class="admin-main">
       <div class="admin-topbar">
-        <h1>Gestion des Actualités</h1>
+        <h1 id="pageTitle">Tableau de bord</h1>
         <div class="admin-topbar__actions">
-          <button class="btn btn--primary" onclick="openModal()"><i class="fas fa-plus"></i> Nouvel Article</button>
-          <a href="../index.html" class="btn btn--outline-dark btn--small"><i class="fas fa-eye"></i> Voir le site</a>
+          <button class="btn btn--primary btn--small" id="topbarAddBtn" style="display:none;"><i class="fas fa-plus"></i> Ajouter</button>
         </div>
       </div>
 
-      <!-- Stats -->
-      <div class="admin-stats">
-        <div class="admin-stat">
-          <div class="admin-stat__icon admin-stat__icon--blue"><i class="fas fa-newspaper"></i></div>
-          <div>
-            <h3 id="totalArticles">0</h3>
-            <p>Total Articles</p>
-          </div>
+      <!-- DASHBOARD TAB -->
+      <div class="tab-content active" id="tab-dashboard">
+        <div class="admin-stats">
+          <div class="admin-stat"><div class="admin-stat__icon admin-stat__icon--blue"><i class="fas fa-newspaper"></i></div><div><h3 id="statArticles">0</h3><p>Actualités</p></div></div>
+          <div class="admin-stat"><div class="admin-stat__icon admin-stat__icon--orange"><i class="fas fa-briefcase"></i></div><div><h3 id="statOffres">0</h3><p>Offres d'emploi</p></div></div>
+          <div class="admin-stat"><div class="admin-stat__icon admin-stat__icon--green"><i class="fas fa-file-alt"></i></div><div><h3 id="statCandidatures">0</h3><p>Candidatures</p></div></div>
+          <div class="admin-stat"><div class="admin-stat__icon admin-stat__icon--red"><i class="fas fa-envelope"></i></div><div><h3 id="statMessages">0</h3><p>Messages non lus</p></div></div>
         </div>
-        <div class="admin-stat">
-          <div class="admin-stat__icon admin-stat__icon--green"><i class="fas fa-check-circle"></i></div>
-          <div>
-            <h3 id="publishedArticles">0</h3>
-            <p>Publiés</p>
-          </div>
+        <div class="admin-card">
+          <div class="admin-card__header"><h2>Messages récents</h2></div>
+          <div class="admin-card__body" id="recentMessages"><p style="color:var(--gray)">Chargement...</p></div>
         </div>
-        <div class="admin-stat">
-          <div class="admin-stat__icon admin-stat__icon--orange"><i class="fas fa-file"></i></div>
-          <div>
-            <h3 id="draftArticles">0</h3>
-            <p>Brouillons</p>
+      </div>
+
+      <!-- ARTICLES TAB -->
+      <div class="tab-content" id="tab-articles">
+        <div class="admin-card">
+          <div class="admin-card__header">
+            <h2>Liste des Actualités</h2>
+            <input type="text" id="searchArticles" placeholder="Rechercher..." style="padding:8px 14px;border:1px solid var(--gray-light);border-radius:var(--radius);font-size:0.85rem;width:220px;">
+          </div>
+          <div class="admin-card__body" style="padding:0;">
+            <table class="admin-table">
+              <thead><tr><th>Image</th><th>Titre</th><th>Catégorie</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+              <tbody id="articlesTable"></tbody>
+            </table>
+            <div class="empty-state" id="articlesEmpty" style="display:none;"><i class="fas fa-newspaper"></i><p>Aucun article</p><button class="btn btn--primary btn--small" onclick="openArticleModal()">Créer un article</button></div>
           </div>
         </div>
       </div>
 
-      <!-- Articles Table -->
-      <div class="admin-card">
-        <div class="admin-card__header">
-          <h2>Liste des Articles</h2>
-          <input type="text" id="searchInput" placeholder="Rechercher..." style="padding:8px 14px;border:1px solid var(--gray-light);border-radius:var(--radius);font-size:0.9rem;width:250px;">
+      <!-- OFFRES TAB -->
+      <div class="tab-content" id="tab-offres">
+        <div class="admin-card">
+          <div class="admin-card__header">
+            <h2>Offres d'emploi</h2>
+            <input type="text" id="searchOffres" placeholder="Rechercher..." style="padding:8px 14px;border:1px solid var(--gray-light);border-radius:var(--radius);font-size:0.85rem;width:220px;">
+          </div>
+          <div class="admin-card__body" style="padding:0;">
+            <table class="admin-table">
+              <thead><tr><th>Titre</th><th>Département</th><th>Lieu</th><th>Type</th><th>Statut</th><th>Actions</th></tr></thead>
+              <tbody id="offresTable"></tbody>
+            </table>
+            <div class="empty-state" id="offresEmpty" style="display:none;"><i class="fas fa-briefcase"></i><p>Aucune offre</p><button class="btn btn--primary btn--small" onclick="openOffreModal()">Créer une offre</button></div>
+          </div>
         </div>
-        <div class="admin-card__body" style="padding:0;">
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Image</th>
-                <th>Titre</th>
-                <th>Date</th>
-                <th>Statut</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="articlesTableBody">
-              <!-- Dynamic content -->
-            </tbody>
-          </table>
-          <div id="emptyState" style="text-align:center;padding:60px 20px;display:none;">
-            <i class="fas fa-newspaper" style="font-size:3rem;color:var(--gray-light);margin-bottom:16px;display:block;"></i>
-            <p style="color:var(--gray);margin-bottom:20px;">Aucun article pour le moment.</p>
-            <button class="btn btn--primary" onclick="openModal()"><i class="fas fa-plus"></i> Créer le premier article</button>
+      </div>
+
+      <!-- CANDIDATURES TAB -->
+      <div class="tab-content" id="tab-candidatures">
+        <div class="admin-card">
+          <div class="admin-card__header"><h2>Candidatures reçues</h2></div>
+          <div class="admin-card__body" style="padding:0;">
+            <table class="admin-table">
+              <thead><tr><th>Nom</th><th>Poste</th><th>Email</th><th>Téléphone</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+              <tbody id="candidaturesTable"></tbody>
+            </table>
+            <div class="empty-state" id="candidaturesEmpty" style="display:none;"><i class="fas fa-file-alt"></i><p>Aucune candidature</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MESSAGES TAB -->
+      <div class="tab-content" id="tab-messages">
+        <div class="admin-card">
+          <div class="admin-card__header"><h2>Messages de contact</h2></div>
+          <div class="admin-card__body" style="padding:0;">
+            <table class="admin-table">
+              <thead><tr><th>De</th><th>Sujet</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+              <tbody id="messagesTable"></tbody>
+            </table>
+            <div class="empty-state" id="messagesEmpty" style="display:none;"><i class="fas fa-envelope"></i><p>Aucun message</p></div>
           </div>
         </div>
       </div>
     </main>
   </div>
 
-  <!-- Add/Edit Modal -->
+  <!-- ARTICLE MODAL -->
   <div class="modal-overlay" id="articleModal">
     <div class="modal">
-      <div class="modal__header">
-        <h2 id="modalTitle">Nouvel Article</h2>
-        <button class="modal__close" onclick="closeModal()"><i class="fas fa-times"></i></button>
-      </div>
+      <div class="modal__header"><h2 id="articleModalTitle">Nouvel Article</h2><button class="modal__close" onclick="closeModal('articleModal')"><i class="fas fa-times"></i></button></div>
       <div class="modal__body">
-        <form id="articleForm">
-          <input type="hidden" id="articleId">
-          <div class="form-group">
-            <label for="articleTitle">Titre *</label>
-            <input type="text" id="articleTitle" placeholder="Titre de l'article" required>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="articleDate">Date *</label>
-              <input type="date" id="articleDate" required>
-            </div>
-            <div class="form-group">
-              <label for="articleCategory">Catégorie</label>
-              <select id="articleCategory">
-                <option value="Général">Général</option>
-                <option value="BTP">BTP</option>
-                <option value="Logistique">Logistique</option>
-                <option value="Maintenance">Maintenance</option>
-                <option value="Sécurité">Sécurité</option>
-                <option value="Digital">Digital</option>
-                <option value="Partenariat">Partenariat</option>
-                <option value="RH">Ressources Humaines</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group">
-            <label for="articleExcerpt">Résumé *</label>
-            <textarea id="articleExcerpt" rows="3" placeholder="Court résumé de l'article..." required></textarea>
-          </div>
-          <div class="form-group">
-            <label for="articleContent">Contenu complet</label>
-            <textarea id="articleContent" rows="8" placeholder="Contenu détaillé de l'article..."></textarea>
-          </div>
-          <div class="form-group">
-            <label for="articleImage">URL de l'image</label>
-            <input type="text" id="articleImage" placeholder="https://... ou chemin local">
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="articleStatus">Statut</label>
-              <select id="articleStatus">
-                <option value="published">Publié</option>
-                <option value="draft">Brouillon</option>
-              </select>
-            </div>
-          </div>
-        </form>
+        <input type="hidden" id="articleId">
+        <div class="form-group"><label>Titre *</label><input type="text" id="articleTitle" placeholder="Titre" required></div>
+        <div class="form-row">
+          <div class="form-group"><label>Date *</label><input type="date" id="articleDate" required></div>
+          <div class="form-group"><label>Catégorie</label><select id="articleCategory"><option>Général</option><option>BTP</option><option>Logistique</option><option>Maintenance</option><option>Sécurité</option><option>Digital</option><option>Partenariat</option><option>RH</option></select></div>
+        </div>
+        <div class="form-group"><label>Résumé *</label><textarea id="articleExcerpt" rows="3" placeholder="Résumé..." required></textarea></div>
+        <div class="form-group"><label>Contenu</label><textarea id="articleContent" rows="6" placeholder="Contenu complet..."></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Image URL</label><input type="text" id="articleImage" placeholder="URL de l'image"></div>
+          <div class="form-group"><label>Statut</label><select id="articleStatus"><option value="published">Publié</option><option value="draft">Brouillon</option></select></div>
+        </div>
       </div>
-      <div class="modal__footer">
-        <button class="btn btn--outline-dark btn--small" onclick="closeModal()">Annuler</button>
-        <button class="btn btn--primary btn--small" onclick="saveArticle()"><i class="fas fa-save"></i> Enregistrer</button>
-      </div>
+      <div class="modal__footer"><button class="btn btn--outline-dark btn--small" onclick="closeModal('articleModal')">Annuler</button><button class="btn btn--primary btn--small" onclick="saveArticle()"><i class="fas fa-save"></i> Enregistrer</button></div>
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal -->
+  <!-- OFFRE MODAL -->
+  <div class="modal-overlay" id="offreModal">
+    <div class="modal">
+      <div class="modal__header"><h2 id="offreModalTitle">Nouvelle Offre</h2><button class="modal__close" onclick="closeModal('offreModal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal__body">
+        <input type="hidden" id="offreId">
+        <div class="form-group"><label>Titre *</label><input type="text" id="offreTitle" placeholder="Titre du poste" required></div>
+        <div class="form-row">
+          <div class="form-group"><label>Département *</label><select id="offreDepartment"><option>BTP</option><option>Logistique</option><option>Maintenance</option><option>Sécurité</option><option>Digital</option><option>Agriculture</option><option>RH</option><option>Administration</option></select></div>
+          <div class="form-group"><label>Lieu *</label><input type="text" id="offreLocation" placeholder="Lubumbashi" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Type de contrat</label><select id="offreContract"><option>CDI</option><option>CDD</option><option>Stage</option><option>Intérim</option></select></div>
+          <div class="form-group"><label>Statut</label><select id="offreStatus"><option value="published">Publié</option><option value="draft">Brouillon</option></select></div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="offreDescription" rows="4" placeholder="Description du poste..."></textarea></div>
+        <div class="form-group"><label>Exigences</label><textarea id="offreRequirements" rows="3" placeholder="Compétences requises..."></textarea></div>
+      </div>
+      <div class="modal__footer"><button class="btn btn--outline-dark btn--small" onclick="closeModal('offreModal')">Annuler</button><button class="btn btn--primary btn--small" onclick="saveOffre()"><i class="fas fa-save"></i> Enregistrer</button></div>
+    </div>
+  </div>
+
+  <!-- MESSAGE DETAIL MODAL -->
+  <div class="modal-overlay" id="messageModal">
+    <div class="modal" style="max-width:600px;">
+      <div class="modal__header"><h2>Détails du message</h2><button class="modal__close" onclick="closeModal('messageModal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal__body" id="messageDetail"></div>
+    </div>
+  </div>
+
+  <!-- CANDIDATURE DETAIL MODAL -->
+  <div class="modal-overlay" id="candidatureModal">
+    <div class="modal" style="max-width:600px;">
+      <div class="modal__header"><h2>Détails de la candidature</h2><button class="modal__close" onclick="closeModal('candidatureModal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal__body" id="candidatureDetail"></div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
   <div class="modal-overlay" id="deleteModal">
-    <div class="modal" style="max-width:450px;">
-      <div class="modal__header">
-        <h2>Confirmer la suppression</h2>
-        <button class="modal__close" onclick="closeDeleteModal()"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal__body" style="text-align:center;">
-        <i class="fas fa-exclamation-triangle" style="font-size:3rem;color:#e74c3c;margin-bottom:16px;"></i>
-        <p>Êtes-vous sûr de vouloir supprimer cet article ? Cette action est irréversible.</p>
-      </div>
-      <div class="modal__footer">
-        <button class="btn btn--outline-dark btn--small" onclick="closeDeleteModal()">Annuler</button>
-        <button class="btn btn--primary btn--small" id="confirmDeleteBtn" style="background:#e74c3c;border-color:#e74c3c;"><i class="fas fa-trash"></i> Supprimer</button>
-      </div>
+    <div class="modal" style="max-width:420px;">
+      <div class="modal__header"><h2>Confirmer</h2><button class="modal__close" onclick="closeModal('deleteModal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal__body" style="text-align:center;"><i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:#e74c3c;margin-bottom:12px;"></i><p id="deleteText">Êtes-vous sûr ?</p></div>
+      <div class="modal__footer"><button class="btn btn--outline-dark btn--small" onclick="closeModal('deleteModal')">Annuler</button><button class="btn btn--primary btn--small" id="confirmDeleteBtn" style="background:#e74c3c;border-color:#e74c3c;"><i class="fas fa-trash"></i> Supprimer</button></div>
     </div>
   </div>
 
-  <script>
-    // ===== Storage =====
-    const STORAGE_KEY = 'saris_articles';
+  <script type="module">
+    import supabase from '../js/supabase.js';
 
-    function getArticles() {
-      const data = localStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
-    }
+    // ===== State =====
+    let articles = [], offres = [], candidatures = [], messages = [];
+    let currentTab = 'dashboard';
+    let deleteCallback = null;
 
-    function saveArticles(articles) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(articles));
-    }
-
-    // ===== Render =====
-    function renderArticles(filter = '') {
-      const articles = getArticles();
-      const tbody = document.getElementById('articlesTableBody');
-      const emptyState = document.getElementById('emptyState');
-      const filtered = filter
-        ? articles.filter(a => a.title.toLowerCase().includes(filter.toLowerCase()))
-        : articles;
-
-      if (filtered.length === 0) {
-        tbody.innerHTML = '';
-        emptyState.style.display = 'block';
-        document.querySelector('.admin-table').style.display = 'none';
-      } else {
-        emptyState.style.display = 'none';
-        document.querySelector('.admin-table').style.display = 'table';
-        tbody.innerHTML = filtered.map(article => `
-          <tr>
-            <td><img src="${article.image || '../assets/images/logistique-entrepot.png'}" alt="" style="width:60px;height:40px;object-fit:cover;border-radius:6px;"></td>
-            <td><strong>${article.title}</strong><br><small style="color:var(--gray)">${article.category || 'Général'}</small></td>
-            <td>${formatDate(article.date)}</td>
-            <td><span class="badge badge--${article.status}">${article.status === 'published' ? 'Publié' : 'Brouillon'}</span></td>
-            <td class="actions">
-              <button class="btn-icon btn-icon--edit" onclick="editArticle('${article.id}')" title="Modifier"><i class="fas fa-pen"></i></button>
-              <button class="btn-icon btn-icon--delete" onclick="openDeleteModal('${article.id}')" title="Supprimer"><i class="fas fa-trash"></i></button>
-            </td>
-          </tr>
-        `).join('');
+    // ===== Init =====
+    window.addEventListener('DOMContentLoaded', async () => {
+      if (supabase.loadSession()) {
+        showDashboard();
       }
 
-      // Update stats
-      const published = articles.filter(a => a.status === 'published').length;
-      document.getElementById('totalArticles').textContent = articles.length;
-      document.getElementById('publishedArticles').textContent = published;
-      document.getElementById('draftArticles').textContent = articles.length - published;
-    }
+      document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const btn = document.getElementById('loginBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+        btn.disabled = true;
 
-    function formatDate(dateStr) {
-      if (!dateStr) return '-';
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
-    }
-
-    // ===== Modal =====
-    function openModal(id = null) {
-      const modal = document.getElementById('articleModal');
-      const form = document.getElementById('articleForm');
-      form.reset();
-      document.getElementById('articleId').value = '';
-      document.getElementById('modalTitle').textContent = id ? 'Modifier l\'Article' : 'Nouvel Article';
-
-      if (id) {
-        const articles = getArticles();
-        const article = articles.find(a => a.id === id);
-        if (article) {
-          document.getElementById('articleId').value = article.id;
-          document.getElementById('articleTitle').value = article.title;
-          document.getElementById('articleDate').value = article.date;
-          document.getElementById('articleCategory').value = article.category || 'Général';
-          document.getElementById('articleExcerpt').value = article.excerpt;
-          document.getElementById('articleContent').value = article.content || '';
-          document.getElementById('articleImage').value = article.image || '';
-          document.getElementById('articleStatus').value = article.status;
+        const { error } = await supabase.signIn(email, password);
+        if (error) {
+          document.getElementById('loginError').textContent = error.message || 'Identifiants incorrects';
+          document.getElementById('loginError').style.display = 'block';
+          btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Se connecter';
+          btn.disabled = false;
+        } else {
+          showDashboard();
         }
-      } else {
-        document.getElementById('articleDate').value = new Date().toISOString().split('T')[0];
-      }
+      });
 
-      modal.classList.add('active');
-    }
+      // Nav tabs
+      document.querySelectorAll('.admin-nav a[data-tab]').forEach(link => {
+        link.addEventListener('click', () => switchTab(link.dataset.tab));
+      });
 
-    function closeModal() {
-      document.getElementById('articleModal').classList.remove('active');
-    }
+      document.getElementById('logoutBtn').addEventListener('click', async () => {
+        await supabase.signOut();
+        document.getElementById('adminDashboard').style.display = 'none';
+        document.getElementById('loginPage').style.display = 'flex';
+      });
 
-    function editArticle(id) {
-      openModal(id);
-    }
+      // Search
+      document.getElementById('searchArticles').addEventListener('input', (e) => renderArticles(e.target.value));
+      document.getElementById('searchOffres').addEventListener('input', (e) => renderOffres(e.target.value));
 
-    // ===== Save =====
-    function saveArticle() {
-      const title = document.getElementById('articleTitle').value.trim();
-      const date = document.getElementById('articleDate').value;
-      const excerpt = document.getElementById('articleExcerpt').value.trim();
+      // Delete confirm
+      document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+        if (deleteCallback) deleteCallback();
+        closeModal('deleteModal');
+      });
 
-      if (!title || !date || !excerpt) {
-        alert('Veuillez remplir les champs obligatoires (Titre, Date, Résumé).');
-        return;
-      }
+      // Topbar add button
+      document.getElementById('topbarAddBtn').addEventListener('click', () => {
+        if (currentTab === 'articles') openArticleModal();
+        else if (currentTab === 'offres') openOffreModal();
+      });
 
-      const articles = getArticles();
-      const id = document.getElementById('articleId').value;
-
-      const articleData = {
-        id: id || Date.now().toString(),
-        title,
-        date,
-        category: document.getElementById('articleCategory').value,
-        excerpt,
-        content: document.getElementById('articleContent').value,
-        image: document.getElementById('articleImage').value,
-        status: document.getElementById('articleStatus').value
-      };
-
-      if (id) {
-        const index = articles.findIndex(a => a.id === id);
-        if (index !== -1) articles[index] = articleData;
-      } else {
-        articles.unshift(articleData);
-      }
-
-      saveArticles(articles);
-      renderArticles(document.getElementById('searchInput').value);
-      closeModal();
-    }
-
-    // ===== Delete =====
-    let deleteId = null;
-
-    function openDeleteModal(id) {
-      deleteId = id;
-      document.getElementById('deleteModal').classList.add('active');
-    }
-
-    function closeDeleteModal() {
-      deleteId = null;
-      document.getElementById('deleteModal').classList.remove('active');
-    }
-
-    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
-      if (deleteId) {
-        let articles = getArticles();
-        articles = articles.filter(a => a.id !== deleteId);
-        saveArticles(articles);
-        renderArticles(document.getElementById('searchInput').value);
-        closeDeleteModal();
-      }
-    });
-
-    // ===== Search =====
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      renderArticles(e.target.value);
-    });
-
-    // ===== Close modals on overlay click =====
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-          overlay.classList.remove('active');
-        }
+      // Modal overlay close
+      document.querySelectorAll('.modal-overlay').forEach(o => {
+        o.addEventListener('click', (e) => { if (e.target === o) o.classList.remove('active'); });
       });
     });
 
-    // ===== Init =====
-    renderArticles();
+    // ===== Dashboard =====
+    async function showDashboard() {
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('adminDashboard').style.display = 'grid';
+      document.getElementById('adminName').textContent = supabase.user?.email || 'Admin';
+      await loadAll();
+    }
+
+    async function loadAll() {
+      try {
+        [articles, offres, candidatures, messages] = await Promise.all([
+          supabase.getArticles(),
+          supabase.getJobOffers(),
+          supabase.getCandidatures(),
+          supabase.getMessages()
+        ]);
+      } catch(e) {
+        console.error('Load error:', e);
+        articles = []; offres = []; candidatures = []; messages = [];
+      }
+      updateStats();
+      renderCurrentTab();
+    }
+
+    function updateStats() {
+      document.getElementById('statArticles').textContent = articles.length;
+      document.getElementById('statOffres').textContent = offres.length;
+      document.getElementById('statCandidatures').textContent = candidatures.length;
+      document.getElementById('statMessages').textContent = messages.filter(m => m.status === 'new').length;
+      document.getElementById('countArticles').textContent = articles.length;
+      document.getElementById('countOffres').textContent = offres.length;
+      document.getElementById('countCandidatures').textContent = candidatures.length;
+      document.getElementById('countMessages').textContent = messages.filter(m => m.status === 'new').length;
+      renderRecentMessages();
+    }
+
+    function renderRecentMessages() {
+      const container = document.getElementById('recentMessages');
+      const recent = messages.slice(0, 5);
+      if (recent.length === 0) { container.innerHTML = '<p style="color:var(--gray)">Aucun message</p>'; return; }
+      container.innerHTML = recent.map(m => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--gray-light);cursor:pointer;" onclick="viewMessage('${m.id}')">
+          <div><strong>${m.prenom} ${m.nom}</strong> — ${m.sujet}<br><small style="color:var(--gray)">${m.email}</small></div>
+          <span class="badge badge--${m.status}">${m.status === 'new' ? 'Nouveau' : m.status === 'read' ? 'Lu' : 'Répondu'}</span>
+        </div>
+      `).join('');
+    }
+
+    // ===== Tabs =====
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.admin-nav a[data-tab]').forEach(a => a.classList.remove('active'));
+      document.querySelector(`.admin-nav a[data-tab="${tab}"]`).classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      const titles = { dashboard: 'Tableau de bord', articles: 'Actualités', offres: "Offres d'emploi", candidatures: 'Candidatures', messages: 'Messages' };
+      document.getElementById('pageTitle').textContent = titles[tab] || '';
+      document.getElementById('topbarAddBtn').style.display = (tab === 'articles' || tab === 'offres') ? '' : 'none';
+      renderCurrentTab();
+    }
+
+    function renderCurrentTab() {
+      if (currentTab === 'articles') renderArticles();
+      else if (currentTab === 'offres') renderOffres();
+      else if (currentTab === 'candidatures') renderCandidatures();
+      else if (currentTab === 'messages') renderMessages();
+    }
+
+    // ===== Articles =====
+    function renderArticles(filter = '') {
+      const list = filter ? articles.filter(a => a.title.toLowerCase().includes(filter.toLowerCase())) : articles;
+      const tbody = document.getElementById('articlesTable');
+      const empty = document.getElementById('articlesEmpty');
+      if (list.length === 0) { tbody.innerHTML = ''; empty.style.display = ''; document.querySelector('#tab-articles .admin-table').style.display = 'none'; return; }
+      empty.style.display = 'none'; document.querySelector('#tab-articles .admin-table').style.display = 'table';
+      tbody.innerHTML = list.map(a => `<tr>
+        <td><img src="${a.image_url || '../assets/images/logistique-entrepot.png'}" style="width:56px;height:36px;object-fit:cover;border-radius:6px;"></td>
+        <td><strong>${a.title}</strong></td>
+        <td>${a.category || '-'}</td>
+        <td>${formatDate(a.created_at)}</td>
+        <td><span class="badge badge--${a.status}">${a.status === 'published' ? 'Publié' : 'Brouillon'}</span></td>
+        <td class="actions">
+          <button class="btn-icon btn-icon--edit" onclick="editArticle('${a.id}')" title="Modifier"><i class="fas fa-pen"></i></button>
+          <button class="btn-icon btn-icon--delete" onclick="confirmDelete('article','${a.id}','${a.title.replace(/'/g,"\\'")}')" title="Supprimer"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`).join('');
+    }
+
+    window.openArticleModal = function(id = null) {
+      document.getElementById('articleId').value = '';
+      document.getElementById('articleForm')?.reset?.();
+      document.getElementById('articleModalTitle').textContent = id ? 'Modifier' : 'Nouvel Article';
+      document.getElementById('articleDate').value = new Date().toISOString().split('T')[0];
+      if (id) {
+        const a = articles.find(x => x.id === id);
+        if (a) {
+          document.getElementById('articleId').value = a.id;
+          document.getElementById('articleTitle').value = a.title;
+          document.getElementById('articleDate').value = a.created_at?.split('T')[0] || '';
+          document.getElementById('articleCategory').value = a.category || 'Général';
+          document.getElementById('articleExcerpt').value = a.excerpt;
+          document.getElementById('articleContent').value = a.content || '';
+          document.getElementById('articleImage').value = a.image_url || '';
+          document.getElementById('articleStatus').value = a.status;
+        }
+      }
+      document.getElementById('articleModal').classList.add('active');
+    };
+
+    window.editArticle = function(id) { openArticleModal(id); };
+
+    window.saveArticle = async function() {
+      const title = document.getElementById('articleTitle').value.trim();
+      const excerpt = document.getElementById('articleExcerpt').value.trim();
+      if (!title || !excerpt) { alert('Titre et résumé requis.'); return; }
+      const data = {
+        title, excerpt,
+        date: document.getElementById('articleDate').value,
+        category: document.getElementById('articleCategory').value,
+        content: document.getElementById('articleContent').value,
+        image_url: document.getElementById('articleImage').value,
+        status: document.getElementById('articleStatus').value
+      };
+      const id = document.getElementById('articleId').value;
+      if (id) { await supabase.updateArticle(id, data); }
+      else { await supabase.createArticle(data); }
+      closeModal('articleModal');
+      articles = await supabase.getArticles();
+      updateStats(); renderArticles();
+    };
+
+    // ===== Offres =====
+    function renderOffres(filter = '') {
+      const list = filter ? offres.filter(o => o.title.toLowerCase().includes(filter.toLowerCase())) : offres;
+      const tbody = document.getElementById('offresTable');
+      const empty = document.getElementById('offresEmpty');
+      if (list.length === 0) { tbody.innerHTML = ''; empty.style.display = ''; document.querySelector('#tab-offres .admin-table').style.display = 'none'; return; }
+      empty.style.display = 'none'; document.querySelector('#tab-offres .admin-table').style.display = 'table';
+      tbody.innerHTML = list.map(o => `<tr>
+        <td><strong>${o.title}</strong></td>
+        <td>${o.department}</td>
+        <td>${o.location}</td>
+        <td>${o.contract_type}</td>
+        <td><span class="badge badge--${o.status}">${o.status === 'published' ? 'Publié' : 'Brouillon'}</span></td>
+        <td class="actions">
+          <button class="btn-icon btn-icon--edit" onclick="editOffre('${o.id}')" title="Modifier"><i class="fas fa-pen"></i></button>
+          <button class="btn-icon btn-icon--delete" onclick="confirmDelete('offre','${o.id}','${o.title.replace(/'/g,"\\'")}')" title="Supprimer"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>`).join('');
+    }
+
+    window.openOffreModal = function(id = null) {
+      document.getElementById('offreId').value = '';
+      document.getElementById('offreModalTitle').textContent = id ? 'Modifier' : 'Nouvelle Offre';
+      if (id) {
+        const o = offres.find(x => x.id === id);
+        if (o) {
+          document.getElementById('offreId').value = o.id;
+          document.getElementById('offreTitle').value = o.title;
+          document.getElementById('offreDepartment').value = o.department;
+          document.getElementById('offreLocation').value = o.location;
+          document.getElementById('offreContract').value = o.contract_type;
+          document.getElementById('offreDescription').value = o.description || '';
+          document.getElementById('offreRequirements').value = o.requirements || '';
+          document.getElementById('offreStatus').value = o.status;
+        }
+      }
+      document.getElementById('offreModal').classList.add('active');
+    };
+
+    window.editOffre = function(id) { openOffreModal(id); };
+
+    window.saveOffre = async function() {
+      const title = document.getElementById('offreTitle').value.trim();
+      if (!title) { alert('Titre requis.'); return; }
+      const data = {
+        title,
+        department: document.getElementById('offreDepartment').value,
+        location: document.getElementById('offreLocation').value,
+        contract_type: document.getElementById('offreContract').value,
+        description: document.getElementById('offreDescription').value,
+        requirements: document.getElementById('offreRequirements').value,
+        status: document.getElementById('offreStatus').value
+      };
+      const id = document.getElementById('offreId').value;
+      if (id) { await supabase.updateJobOffer(id, data); }
+      else { await supabase.createJobOffer(data); }
+      closeModal('offreModal');
+      offres = await supabase.getJobOffers();
+      updateStats(); renderOffres();
+    };
+
+    // ===== Candidatures =====
+    function renderCandidatures() {
+      const tbody = document.getElementById('candidaturesTable');
+      const empty = document.getElementById('candidaturesEmpty');
+      if (candidatures.length === 0) { tbody.innerHTML = ''; empty.style.display = ''; document.querySelector('#tab-candidatures .admin-table').style.display = 'none'; return; }
+      empty.style.display = 'none'; document.querySelector('#tab-candidatures .admin-table').style.display = 'table';
+      tbody.innerHTML = candidatures.map(c => `<tr>
+        <td><strong>${c.prenom} ${c.nom}</strong></td>
+        <td>${c.poste_souhaite}</td>
+        <td>${c.email}</td>
+        <td>${c.telephone || '-'}</td>
+        <td>${formatDate(c.created_at)}</td>
+        <td><span class="badge badge--${c.status}">${c.status === 'new' ? 'Nouveau' : c.status === 'reviewed' ? 'Examiné' : c.status === 'accepted' ? 'Accepté' : 'Refusé'}</span></td>
+        <td class="actions">
+          <button class="btn-icon btn-icon--view" onclick="viewCandidature('${c.id}')" title="Voir"><i class="fas fa-eye"></i></button>
+          <button class="btn-icon btn-icon--edit" onclick="updateCandStatus('${c.id}')" title="Changer statut"><i class="fas fa-pen"></i></button>
+        </td>
+      </tr>`).join('');
+    }
+
+    window.viewCandidature = function(id) {
+      const c = candidatures.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('candidatureDetail').innerHTML = `
+        <div class="message-detail">
+          <p><strong>Nom :</strong> ${c.prenom} ${c.nom}</p>
+          <p><strong>Email :</strong> ${c.email}</p>
+          <p><strong>Téléphone :</strong> ${c.telephone || '-'}</p>
+          <p><strong>Poste souhaité :</strong> ${c.poste_souhaite}</p>
+          <p><strong>Date :</strong> ${formatDate(c.created_at)}</p>
+          ${c.message ? `<p><strong>Message :</strong><br>${c.message}</p>` : ''}
+        </div>`;
+      document.getElementById('candidatureModal').classList.add('active');
+    };
+
+    window.updateCandStatus = async function(id) {
+      const c = candidatures.find(x => x.id === id);
+      if (!c) return;
+      const statuses = ['new', 'reviewed', 'accepted', 'rejected'];
+      const labels = ['Nouveau', 'Examiné', 'Accepté', 'Refusé'];
+      const current = statuses.indexOf(c.status);
+      const next = prompt(`Statut actuel: ${labels[current]}\nNouveau statut:\n1=Nouveau, 2=Examiné, 3=Accepté, 4=Refusé`, current + 1);
+      if (next && statuses[parseInt(next) - 1]) {
+        await supabase.updateCandidature(id, { status: statuses[parseInt(next) - 1] });
+        candidatures = await supabase.getCandidatures();
+        updateStats(); renderCandidatures();
+      }
+    };
+
+    // ===== Messages =====
+    function renderMessages() {
+      const tbody = document.getElementById('messagesTable');
+      const empty = document.getElementById('messagesEmpty');
+      if (messages.length === 0) { tbody.innerHTML = ''; empty.style.display = ''; document.querySelector('#tab-messages .admin-table').style.display = 'none'; return; }
+      empty.style.display = 'none'; document.querySelector('#tab-messages .admin-table').style.display = 'table';
+      tbody.innerHTML = messages.map(m => `<tr>
+        <td><strong>${m.prenom} ${m.nom}</strong><br><small style="color:var(--gray)">${m.email}</small></td>
+        <td>${m.sujet}</td>
+        <td>${formatDate(m.created_at)}</td>
+        <td><span class="badge badge--${m.status}">${m.status === 'new' ? 'Nouveau' : m.status === 'read' ? 'Lu' : m.status === 'replied' ? 'Répondu' : 'Archivé'}</span></td>
+        <td class="actions">
+          <button class="btn-icon btn-icon--view" onclick="viewMessage('${m.id}')" title="Voir"><i class="fas fa-eye"></i></button>
+          <button class="btn-icon btn-icon--reply" onclick="replyMessage('${m.id}')" title="Répondre"><i class="fas fa-reply"></i></button>
+        </td>
+      </tr>`).join('');
+    }
+
+    window.viewMessage = async function(id) {
+      const m = messages.find(x => x.id === id);
+      if (!m) return;
+      if (m.status === 'new') {
+        await supabase.updateMessage(id, { status: 'read' });
+        m.status = 'read';
+        messages = await supabase.getMessages();
+        updateStats(); renderMessages();
+      }
+      document.getElementById('messageDetail').innerHTML = `
+        <div class="message-detail">
+          <p><strong>De :</strong> ${m.prenom} ${m.nom} (${m.email})</p>
+          <p><strong>Téléphone :</strong> ${m.telephone || '-'}</p>
+          <p><strong>Société :</strong> ${m.societe || '-'}</p>
+          <p><strong>Sujet :</strong> ${m.sujet}</p>
+          <p><strong>Date :</strong> ${formatDate(m.created_at)}</p>
+          <p style="margin-top:12px;padding:12px;background:var(--white);border-radius:var(--radius);">${m.message}</p>
+          ${m.reply ? `<div style="margin-top:12px;padding:12px;background:rgba(39,174,96,0.05);border-left:3px solid #27ae60;border-radius:var(--radius);"><strong>Réponse :</strong><p>${m.reply}</p></div>` : ''}
+        </div>
+        <div class="reply-area">
+          <label style="font-weight:600;font-size:0.9rem;margin-bottom:8px;display:block;">Répondre :</label>
+          <textarea id="replyText" placeholder="Votre réponse...">${m.reply || ''}</textarea>
+          <button class="btn btn--primary btn--small mt-2" onclick="sendReply('${m.id}')"><i class="fas fa-paper-plane"></i> Envoyer la réponse</button>
+        </div>`;
+      document.getElementById('messageModal').classList.add('active');
+    };
+
+    window.replyMessage = function(id) { viewMessage(id); };
+
+    window.sendReply = async function(id) {
+      const reply = document.getElementById('replyText').value.trim();
+      if (!reply) { alert('Veuillez écrire une réponse.'); return; }
+      await supabase.replyToMessage(id, reply);
+      messages = await supabase.getMessages();
+      updateStats(); renderMessages();
+      closeModal('messageModal');
+    };
+
+    // ===== Delete =====
+    window.confirmDelete = function(type, id, name) {
+      document.getElementById('deleteText').textContent = `Supprimer "${name}" ?`;
+      deleteCallback = async () => {
+        if (type === 'article') await supabase.deleteArticle(id);
+        else if (type === 'offre') await supabase.deleteJobOffer(id);
+        await loadAll();
+      };
+      document.getElementById('deleteModal').classList.add('active');
+    };
+
+    // ===== Helpers =====
+    window.closeModal = function(id) { document.getElementById(id).classList.remove('active'); };
+
+    function formatDate(d) {
+      if (!d) return '-';
+      return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
   </script>
 </body>
 </html>

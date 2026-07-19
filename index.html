@@ -384,60 +384,43 @@
   </style>
 
   <script src="js/main.js"></script>
-  <script>
-    // Load news from admin panel (localStorage)
-    (function() {
-      const STORAGE_KEY = 'saris_articles';
+  <script type="module">
+    import supabase from './js/supabase.js';
+
+    async function loadNews() {
       const newsGrid = document.getElementById('newsGrid');
       if (!newsGrid) return;
 
-      let articles = [];
+      const defaults = [
+        { image_url: 'assets/images/logistique-entrepot.png', created_at: '2026-06-15', title: 'SARIS SARL lance un nouveau projet minier au Katanga', excerpt: 'Notre société a été sélectionnée pour accompagner un grand groupe minier dans la gestion logistique de ses opérations...' },
+        { image_url: 'assets/images/logistique-bureau.png', created_at: '2026-05-28', title: 'Signature d\'un partenariat stratégique avec un opérateur minier', excerpt: 'Ce partenariat renforce notre position dans le secteur minier et nous permet d\'étendre notre gamme de services...' },
+        { image_url: 'assets/images/rh-equipe.png', created_at: '2026-05-10', title: 'Programme de formation : Renforcement des compétences techniques', excerpt: 'SARIS SARL investit dans la formation de ses équipes pour garantir l\'excellence opérationnelle sur tous ses chantiers...' }
+      ];
+
+      let articles = defaults;
       try {
-        const data = localStorage.getItem(STORAGE_KEY);
-        articles = data ? JSON.parse(data) : [];
+        const data = await supabase.getArticles(true);
+        if (data && data.length > 0) articles = data;
       } catch(e) {}
 
-      // Filter only published articles, sorted by date desc
-      const published = articles
-        .filter(a => a.status === 'published')
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      if (published.length === 0) {
-        // Default articles if none in admin
-        const defaults = [
-          { image: 'assets/images/logistique-entrepot.png', date: '15 Juin 2026', title: 'SARIS SARL lance un nouveau projet minier au Katanga', excerpt: 'Notre société a été sélectionnée pour accompagner un grand groupe minier dans la gestion logistique de ses opérations...' },
-          { image: 'assets/images/logistique-bureau.png', date: '28 Mai 2026', title: 'Signature d\'un partenariat stratégique avec un opérateur minier', excerpt: 'Ce partenariat renforce notre position dans le secteur minier et nous permet d\'étendre notre gamme de services...' },
-          { image: 'assets/images/rh-equipe.png', date: '10 Mai 2026', title: 'Programme de formation : Renforcement des compétences techniques', excerpt: 'SARIS SARL investit dans la formation de ses équipes pour garantir l\'excellence opérationnelle sur tous ses chantiers...' }
-        ];
-        newsGrid.innerHTML = defaults.map(a => `
-          <div class="news-card animate">
-            <div class="news-card__img"><img src="${a.image}" alt="${a.title}"></div>
-            <div class="news-card__body">
-              <span class="news-card__date">${a.date}</span>
-              <h3>${a.title}</h3>
-              <p>${a.excerpt}</p>
-              <a href="#" class="news-card__link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-            </div>
+      const display = articles.slice(0, 3);
+      newsGrid.innerHTML = display.map(a => {
+        const d = new Date(a.created_at);
+        const dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        return `
+        <div class="news-card animate">
+          <div class="news-card__img"><img src="${a.image_url || 'assets/images/logistique-entrepot.png'}" alt="${a.title}"></div>
+          <div class="news-card__body">
+            <span class="news-card__date">${dateStr}</span>
+            <h3>${a.title}</h3>
+            <p>${a.excerpt}</p>
+            <a href="#" class="news-card__link">Lire la suite <i class="fas fa-arrow-right"></i></a>
           </div>
-        `).join('');
-      } else {
-        const display = published.slice(0, 3);
-        newsGrid.innerHTML = display.map(a => {
-          const d = new Date(a.date);
-          const dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-          return `
-          <div class="news-card animate">
-            <div class="news-card__img"><img src="${a.image || 'assets/images/logistique-entrepot.png'}" alt="${a.title}"></div>
-            <div class="news-card__body">
-              <span class="news-card__date">${dateStr}</span>
-              <h3>${a.title}</h3>
-              <p>${a.excerpt}</p>
-              <a href="#" class="news-card__link">Lire la suite <i class="fas fa-arrow-right"></i></a>
-            </div>
-          </div>`;
-        }).join('');
-      }
-    })();
+        </div>`;
+      }).join('');
+    }
+
+    loadNews();
   </script>
 </body>
 </html>

@@ -234,7 +234,9 @@
     <i class="fas fa-arrow-up"></i>
   </button>
 
-  <script>
+  <script type="module">
+    import supabase from '../js/supabase.js';
+
     const backToTop = document.getElementById('backToTop');
     if (backToTop) {
       window.addEventListener('scroll', () => {
@@ -247,6 +249,39 @@
         }
       });
     }
+
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const origText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi...';
+      btn.disabled = true;
+
+      const data = {
+        nom: document.getElementById('nom').value.trim(),
+        prenom: document.getElementById('prenom').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        telephone: document.getElementById('telephone').value.trim(),
+        societe: document.getElementById('societe').value.trim(),
+        sujet: document.getElementById('objet').value,
+        message: document.getElementById('message').value.trim()
+      };
+
+      const { error } = await supabase.createMessage(data);
+      if (error) {
+        btn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Erreur';
+        btn.style.background = '#e74c3c';
+      } else {
+        btn.innerHTML = '<i class="fas fa-check"></i> Message envoyé !';
+        btn.style.background = '#27ae60';
+        e.target.reset();
+      }
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.style.background = '';
+        btn.disabled = false;
+      }, 3000);
+    });
   </script>
   <script src="../js/main.js"></script>
 </body>
