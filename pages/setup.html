@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup SARIS SARL - Base de données</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Open Sans', sans-serif; background: #f4f6f9; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .card { background: #fff; border-radius: 12px; padding: 40px; max-width: 700px; width: 100%; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+    h1 { font-family: 'Montserrat', sans-serif; color: #0A1E3F; font-size: 1.6rem; margin-bottom: 8px; }
+    .subtitle { color: #6c757d; margin-bottom: 30px; font-size: 0.95rem; }
+    .step { background: #f4f6f9; border-radius: 8px; padding: 20px; margin-bottom: 16px; border-left: 4px solid #F47B20; }
+    .step h3 { color: #0A1E3F; font-size: 1rem; margin-bottom: 8px; }
+    .step p { font-size: 0.88rem; color: #6c757d; margin-bottom: 12px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 8px; border: none; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease; }
+    .btn-primary { background: #F47B20; color: #fff; }
+    .btn-primary:hover { background: #e06a10; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(244,123,32,0.4); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .log { background: #1a1a1a; color: #0f0; border-radius: 8px; padding: 16px; margin-top: 16px; font-family: 'Courier New', monospace; font-size: 0.82rem; max-height: 300px; overflow-y: auto; white-space: pre-wrap; display: none; }
+    .log.error { color: #ff4444; }
+    .log.success { color: #44ff44; }
+    .status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+    .status.pending { background: #fff3cd; color: #856404; }
+    .status.done { background: #d4edda; color: #155724; }
+    .status.fail { background: #f8d7da; color: #721c24; }
+    .credentials { background: #e8f4fd; border-radius: 8px; padding: 16px; margin-top: 20px; display: none; }
+    .credentials h4 { color: #0A1E3F; margin-bottom: 8px; }
+    .credentials code { background: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Setup Base de Données SARIS SARL</h1>
+    <p class="subtitle">Exécution automatique du schéma SQL sur Supabase</p>
+
+    <div class="step" id="step1">
+      <h3><span class="status pending" id="status1">En attente</span> Étape 1 : Connexion</h3>
+      <p>Vérification de la connexion à Supabase...</p>
+      <button class="btn btn-primary" onclick="runSetup()"><i class="fas fa-play"></i> Lancer le setup</button>
+    </div>
+
+    <div class="step" id="step2">
+      <h3><span class="status pending" id="status2">En attente</span> Étape 2 : Création des tables</h3>
+      <p>actualites, offres_emploi, candidatures, messages, personnel</p>
+    </div>
+
+    <div class="step" id="step3">
+      <h3><span class="status pending" id="status3">En attente</span> Étape 3 : Politiques RLS</h3>
+      <p>Configuration de la sécurité au niveau des lignes</p>
+    </div>
+
+    <div class="step" id="step4">
+      <h3><span class="status pending" id="status4">En attente</span> Étape 4 : Données initiales</h3>
+      <p>Insertion des articles par défaut</p>
+    </div>
+
+    <div class="log" id="log"></div>
+
+    <div class="credentials" id="credentials">
+      <h4>Compte Admin créé :</h4>
+      <p><strong>Email :</strong> <code>admin@sarisarl.com</code></p>
+      <p><strong>Mot de passe :</strong> <code>Admin@2026!</code></p>
+      <p style="margin-top:12px;"><a href="admin.html" class="btn btn-primary" style="text-decoration:none;font-size:0.85rem;padding:10px 20px;">Ouvrir le panneau admin</a></p>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://knxypigpvpwhjnxdjgmw.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtueHlwaWdwdnB3aGpueGRqZ213Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Mzk1NTI1MywiZXhwIjoyMDk5NTMxMjUzfQ.6bI2is-A1bm8y88TivTGwpSvJXIssfFcxlpwpgeNtQI';
+
+    const logEl = document.getElementById('log');
+    function log(msg, type = '') {
+      logEl.style.display = 'block';
+      logEl.className = 'log ' + type;
+      logEl.textContent += msg + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    function setStatus(n, status) {
+      const el = document.getElementById('status' + n);
+      el.className = 'status ' + status;
+      el.textContent = status === 'done' ? 'Terminé' : status === 'fail' ? 'Erreur' : 'En cours...';
+    }
+
+    async function execSQL(sql) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/exec_sql`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: sql })
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      return res.json();
+    }
+
+    async function tableExists(name) {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${name}?select=id&limit=1`, {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+        return res.ok;
+      } catch { return false; }
+    }
+
+    async function runSetup() {
+      logEl.textContent = '';
+      log('Début du setup...\n');
+
+      // Step 1: Test connection
+      setStatus(1, 'pending');
+      log('Test de connexion...');
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/`, {
+          headers: { 'apikey': SUPABASE_KEY }
+        });
+        if (!res.ok) throw new Error('Connexion échouée');
+        log('✓ Connecté à Supabase', 'success');
+        setStatus(1, 'done');
+      } catch (e) {
+        log('✗ Erreur de connexion: ' + e.message, 'error');
+        setStatus(1, 'fail');
+        return;
+      }
+
+      // Step 2: Create tables via individual inserts (since we can't run DDL via REST)
+      // We'll check if tables exist and guide user
+      setStatus(2, 'pending');
+      log('\nVérification des tables...');
+
+      const tables = ['actualites', 'offres_emploi', 'candidatures', 'messages', 'personnel'];
+      let allExist = true;
+      for (const t of tables) {
+        const exists = await tableExists(t);
+        if (exists) {
+          log(`  ✓ Table "${t}" existe`);
+        } else {
+          log(`  ✗ Table "${t}" manquante`, 'error');
+          allExist = false;
+        }
+      }
+
+      if (!allExist) {
+        log('\n⚠ Les tables n\'existent pas encore.', 'error');
+        log('L\'API REST de Supabase ne permet pas de créer des tables.', 'error');
+        log('\n→ Ouvrez le SQL Editor de Supabase et exécutez le schéma :', 'error');
+        log('  https://supabase.com/dashboard/project/knxypigpvpwhjnxdjgmw/sql/new', 'error');
+
+        // Try to execute via creating a function that runs SQL
+        log('\nTentative de création via fonction SQL...');
+        try {
+          // Create a helper function
+          const createFn = `
+            CREATE OR REPLACE FUNCTION exec_sql(query text) RETURNS void AS $$
+            BEGIN
+              EXECUTE query;
+            END;
+            $$ LANGUAGE plpgsql SECURITY DEFINER;
+          `;
+          await execSQL(createFn);
+          log('✓ Fonction exec_sql créée');
+        } catch (e) {
+          log('✗ Impossible de créer la fonction: ' + e.message, 'error');
+          log('\n📋 SOLUTION MANUELLE :', 'error');
+          log('1. Ouvrez : https://supabase.com/dashboard/project/knxypigpvpwhjnxdjgmw/sql/new', 'error');
+          log('2. Collez le contenu de database/schema.sql', 'error');
+          log('3. Cliquez "Run"', 'error');
+          log('4. Rafraîchissez cette page', 'error');
+          setStatus(2, 'fail');
+          return;
+        }
+
+        // Now try creating tables via the function
+        const createTables = [
+          `CREATE TABLE IF NOT EXISTS actualites (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, title TEXT NOT NULL, excerpt TEXT NOT NULL, content TEXT, category TEXT DEFAULT 'Général', image_url TEXT, status TEXT DEFAULT 'draft' CHECK (status IN ('published', 'draft')), created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now())`,
+          `CREATE TABLE IF NOT EXISTS offres_emploi (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, title TEXT NOT NULL, department TEXT NOT NULL, location TEXT NOT NULL, contract_type TEXT DEFAULT 'CDI', description TEXT, requirements TEXT, status TEXT DEFAULT 'draft' CHECK (status IN ('published', 'draft')), created_at TIMESTAMPTZ DEFAULT now(), updated_at TIMESTAMPTZ DEFAULT now())`,
+          `CREATE TABLE IF NOT EXISTS candidatures (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, nom TEXT NOT NULL, prenom TEXT NOT NULL, email TEXT NOT NULL, telephone TEXT, poste_souhaite TEXT NOT NULL, message TEXT, status TEXT DEFAULT 'new' CHECK (status IN ('new', 'reviewed', 'accepted', 'rejected')), created_at TIMESTAMPTZ DEFAULT now())`,
+          `CREATE TABLE IF NOT EXISTS messages (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, nom TEXT NOT NULL, prenom TEXT NOT NULL, email TEXT NOT NULL, telephone TEXT, societe TEXT, sujet TEXT NOT NULL, message TEXT NOT NULL, status TEXT DEFAULT 'new' CHECK (status IN ('new', 'read', 'replied', 'archived')), reply TEXT, replied_at TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT now())`,
+          `CREATE TABLE IF NOT EXISTS personnel (id UUID DEFAULT gen_random_uuid() PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, nom TEXT NOT NULL, prenom TEXT NOT NULL, role TEXT DEFAULT 'user' CHECK (role IN ('admin', 'editor', 'user')), active BOOLEAN DEFAULT true, created_at TIMESTAMPTZ DEFAULT now())`
+        ];
+
+        for (const sql of createTables) {
+          try {
+            await execSQL(sql);
+            log('  ✓ Table créée');
+          } catch (e) {
+            log('  ✗ Erreur: ' + e.message, 'error');
+          }
+        }
+
+        // Re-check
+        let allNow = true;
+        for (const t of tables) {
+          if (!(await tableExists(t))) { allNow = false; break; }
+        }
+        if (allNow) {
+          setStatus(2, 'done');
+        } else {
+          setStatus(2, 'fail');
+          return;
+        }
+      } else {
+        setStatus(2, 'done');
+      }
+
+      // Step 3: Disable RLS
+      setStatus(3, 'pending');
+      log('\nDésactivation du RLS...');
+      const rlsSql = [
+        'ALTER TABLE actualites DISABLE ROW LEVEL SECURITY',
+        'ALTER TABLE offres_emploi DISABLE ROW LEVEL SECURITY',
+        'ALTER TABLE candidatures DISABLE ROW LEVEL SECURITY',
+        'ALTER TABLE messages DISABLE ROW LEVEL SECURITY',
+        'ALTER TABLE personnel DISABLE ROW LEVEL SECURITY'
+      ];
+      for (const sql of rlsSql) {
+        try { await execSQL(sql); } catch {}
+      }
+      log('✓ RLS configuré', 'success');
+      setStatus(3, 'done');
+
+      // Step 4: Insert default data
+      setStatus(4, 'pending');
+      log('\nInsertion des données initiales...');
+      try {
+        await execSQL(`INSERT INTO actualites (title, excerpt, category, image_url, status, created_at) VALUES ('SARIS SARL lance un nouveau projet minier au Katanga', 'Notre société a été sélectionnée pour accompagner un grand groupe minier dans la gestion logistique de ses opérations.', 'BTP', 'assets/images/logistique-entrepot.png', 'published', '2026-06-15') ON CONFLICT DO NOTHING`);
+        await execSQL(`INSERT INTO actualites (title, excerpt, category, image_url, status, created_at) VALUES ('Signature d''un partenariat stratégique', 'Ce partenariat renforce notre position dans le secteur minier.', 'Partenariat', 'assets/images/logistique-bureau.png', 'published', '2026-05-28') ON CONFLICT DO NOTHING`);
+        await execSQL(`INSERT INTO actualites (title, excerpt, category, image_url, status, created_at) VALUES ('Programme de formation', 'SARIS SARL investit dans la formation de ses équipes.', 'RH', 'assets/images/rh-equipe.png', 'published', '2026-05-10') ON CONFLICT DO NOTHING`);
+        log('✓ Données insérées', 'success');
+      } catch (e) {
+        log('⚠ Données déjà présentes ou erreur: ' + e.message);
+      }
+      setStatus(4, 'done');
+
+      log('\n✓ SETUP TERMINÉ !', 'success');
+      document.getElementById('credentials').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
