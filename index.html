@@ -363,27 +363,32 @@
   </style>
 
   <script src="js/main.js"></script>
-  <script type="module">
-    import supabase from './js/supabase.js';
+  <script>
+    const SB_URL = 'https://knxypigpvpwhjnxdjgmw.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtueHlwaWdwdnB3aGpueGRqZ213Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Mzk1NTI1MywiZXhwIjoyMDk5NTMxMjUzfQ.6bI2is-A1bm8y88TivTGwpSvJXIssfFcxlpwpgeNtQI';
 
     async function loadNews() {
       const newsGrid = document.getElementById('newsGrid');
       if (!newsGrid) return;
 
-      const defaults = [
-        { image_url: 'assets/images/logistique-entrepot.png', created_at: '2026-06-15', title: 'SARIS SARL lance un nouveau projet minier au Katanga', excerpt: 'Notre société a été sélectionnée pour accompagner un grand groupe minier dans la gestion logistique de ses opérations...' },
-        { image_url: 'assets/images/logistique-bureau.png', created_at: '2026-05-28', title: 'Signature d\'un partenariat stratégique avec un opérateur minier', excerpt: 'Ce partenariat renforce notre position dans le secteur minier et nous permet d\'étendre notre gamme de services...' },
-        { image_url: 'assets/images/rh-equipe.png', created_at: '2026-05-10', title: 'Programme de formation : Renforcement des compétences techniques', excerpt: 'SARIS SARL investit dans la formation de ses équipes pour garantir l\'excellence opérationnelle sur tous ses chantiers...' }
-      ];
-
-      let articles = defaults;
+      let articles = [];
       try {
-        const data = await supabase.getArticles(true);
+        const res = await fetch(SB_URL + '/rest/v1/actualites?status=eq.published&order=created_at.desc&limit=3', {
+          headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+        });
+        const data = await res.json();
         if (data && data.length > 0) articles = data;
       } catch(e) {}
 
-      const display = articles.slice(0, 3);
-      newsGrid.innerHTML = display.map(a => {
+      if (articles.length === 0) {
+        articles = [
+          { image_url: 'assets/images/rh-equipe.png', created_at: '2026-07-23', title: 'Formation Entrepreneuriat Kinshasa : SARIS SARL, Equity BCDC et FOECO accompagnent 150 jeunes entrepreneurs', excerpt: 'SARIS SARL, Equity BCDC et FOECO s\'unissent pour former et financer 150 jeunes entrepreneurs...' },
+          { image_url: 'assets/images/pnc-serveurs.png', created_at: '2026-07-23', title: 'Transformation Numérique RDC : SARIS SARL modernise la Police Nationale Congolaise', excerpt: 'SARIS SARL équipe la salle des serveurs du Commissariat Général de la PNC...' },
+          { image_url: 'assets/images/logistique-entrepot.png', created_at: '2026-06-15', title: 'SARIS SARL lance un nouveau projet minier au Katanga', excerpt: 'Notre société a été sélectionnée pour accompagner un grand groupe minier...' }
+        ];
+      }
+
+      newsGrid.innerHTML = articles.map(a => {
         const d = new Date(a.created_at);
         const dateStr = d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
         return `
