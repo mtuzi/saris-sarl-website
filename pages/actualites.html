@@ -59,8 +59,19 @@
   <section class="section">
     <div class="container">
 
+      <!-- Filtres -->
+      <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px;">
+        <button class="filter-btn active" data-filter="all" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:var(--color-primary);color:#fff;font-weight:600;cursor:pointer;transition:all 0.3s;">Toutes</button>
+        <button class="filter-btn" data-filter="formation" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">Formation</button>
+        <button class="filter-btn" data-filter="numerique" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">Numérique</button>
+        <button class="filter-btn" data-filter="btp" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">BTP</button>
+        <button class="filter-btn" data-filter="logistique" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">Logistique</button>
+        <button class="filter-btn" data-filter="securite" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">Sécurité</button>
+        <button class="filter-btn" data-filter="maintenance" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">Maintenance</button>
+      </div>
+
       <!-- Article 1 -->
-      <article class="news-detail animate" style="margin-bottom:60px;">
+      <article class="news-detail animate" data-category="formation" style="margin-bottom:60px;">
         <div class="news-detail__header">
           <span class="news-card__date" style="font-size:0.9rem;">23 Juillet 2026</span>
           <span class="news-tag">Formation</span>
@@ -92,7 +103,7 @@
       <hr style="border:none;border-top:2px solid #eee;margin:40px 0;">
 
       <!-- Article 2 -->
-      <article class="news-detail animate" style="margin-bottom:60px;">
+      <article class="news-detail animate" data-category="numerique" style="margin-bottom:60px;">
         <div class="news-detail__header">
           <span class="news-card__date" style="font-size:0.9rem;">23 Juillet 2026</span>
           <span class="news-tag">Numérique</span>
@@ -190,5 +201,28 @@
   </button>
 
   <script src="../js/main.js"></script>
+  <script>
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          b.style.background = 'transparent';
+          b.style.color = 'var(--color-primary)';
+          b.classList.remove('active');
+        });
+        this.style.background = 'var(--color-primary)';
+        this.style.color = '#fff';
+        this.classList.add('active');
+
+        const filter = this.dataset.filter;
+        document.querySelectorAll('.news-detail').forEach(article => {
+          if (filter === 'all' || article.dataset.category === filter) {
+            article.style.display = 'block';
+          } else {
+            article.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
