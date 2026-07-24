@@ -61,13 +61,13 @@
 
       <!-- Filtres -->
       <div class="filter-bar" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:40px;">
-        <button class="filter-btn active" data-filter="all" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:var(--color-primary);color:#fff;font-weight:600;cursor:pointer;transition:all 0.3s;">Toutes</button>
-        <button class="filter-btn" data-filter="formation" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">Formation</button>
-        <button class="filter-btn" data-filter="numerique" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">Numérique</button>
-        <button class="filter-btn" data-filter="btp" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">BTP</button>
-        <button class="filter-btn" data-filter="logistique" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">Logistique</button>
-        <button class="filter-btn" data-filter="securite" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">Sécurité</button>
-        <button class="filter-btn" data-filter="maintenance" style="padding:8px 20px;border-radius:25px;border:2px solid var(--color-primary);background:transparent;color:var(--color-primary);font-weight:600;cursor:pointer;transition:all 0.3s;">Maintenance</button>
+        <button class="filter-btn active" data-filter="all" style="padding:10px 24px;border-radius:30px;border:2px solid #F47B20;background:#F47B20;color:#fff;font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(244,123,32,0.3);">Toutes</button>
+        <button class="filter-btn" data-filter="formation" style="padding:10px 24px;border-radius:30px;border:2px solid #0A1E3F;background:#fff;color:#0A1E3F;font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.08);">Formation</button>
+        <button class="filter-btn" data-filter="numerique" style="padding:10px 24px;border-radius:30px;border:2px solid #0A1E3F;background:#fff;color:#0A1E3F;font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.08);">Numérique</button>
+        <button class="filter-btn" data-filter="btp" style="padding:10px 24px;border-radius:30px;border:2px solid #0A1E3F;background:#fff;color:#0A1E3F;font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.08);">BTP</button>
+        <button class="filter-btn" data-filter="logistique" style="padding:10px 24px;border-radius:30px;border:2px solid #0A1E3F;background:#fff;color:#0A1E3F;font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.08);">Logistique</button>
+        <button class="filter-btn" data-filter="securite" style="padding:10px 24px;border-radius:30px;border:2px solid #0A1E3F;background:#fff;color:#0A1E3F;font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.08);">Sécurité</button>
+        <button class="filter-btn" data-filter="maintenance" style="padding:10px 24px;border-radius:30px;border:2px solid #0A1E3F;background:#fff;color:#0A1E3F;font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.3s;box-shadow:0 2px 8px rgba(0,0,0,0.08);">Maintenance</button>
       </div>
 
       <!-- Article 1 -->
@@ -205,12 +205,16 @@
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', function() {
         document.querySelectorAll('.filter-btn').forEach(b => {
-          b.style.background = 'transparent';
-          b.style.color = 'var(--color-primary)';
+          b.style.background = '#fff';
+          b.style.color = '#0A1E3F';
+          b.style.borderColor = '#0A1E3F';
+          b.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
           b.classList.remove('active');
         });
-        this.style.background = 'var(--color-primary)';
+        this.style.background = '#F47B20';
         this.style.color = '#fff';
+        this.style.borderColor = '#F47B20';
+        this.style.boxShadow = '0 4px 12px rgba(244,123,32,0.4)';
         this.classList.add('active');
 
         const filter = this.dataset.filter;
